@@ -1,0 +1,78 @@
+schema_version: action_validation.v1
+seed: 20260818
+
+paths:
+  project_root: ..
+  run_dir: runs/action_validation
+  storage_dir: data/workspaces/action_validation
+  foundation_config: configs/observability_replication.yaml
+  generalization_config: configs/generalization.yaml
+  observability_replication_run: runs/observability/replication
+  generalization_run: runs/generalization
+  counterfactual_run: runs/counterfactuals
+  mechanism_run: runs/mechanisms
+  megascale_archive: data/external/tsuboyama/7844779/Processed_K50_dG_datasets.zip
+  megascale_structures: data/external/tsuboyama/7992926/AlphaFold_model_PDBs
+  s669_root: external/repositories/proteinmpnn_ddg/paper/datasets/s669
+  mmseqs_executable: tools/mmseqs/bin/mmseqs
+  sequence_models_repository: external/repositories/protein-sequence-models
+  mif_checkpoint: models/protein_sequence_models/mif.pt
+  proteinmpnn_repository: external/repositories/ProteinMPNN
+  proteinmpnn_checkpoint: external/repositories/ProteinMPNN/vanilla_model_weights/v_48_020.pt
+  esm_if1_repository: external/repositories/fair-esm
+  esm_if1_checkpoint: models/esm_if1_gvp4_t16_142M_UR50.pt
+  cath_queries: runs/generalization/architecture/query_rows.parquet
+  cath_teacher_scores: runs/observability/replication/teacher_cache/scores.parquet
+  cath_mif_scores: runs/generalization/mif/scores.parquet
+  cath_carp_store: data/workspaces/generalization/architecture/carp_640M
+  cath_esm2_store: data/workspaces/mechanisms/training_controls/esm2_150M_cath
+
+panel:
+  megascale_member: Processed_K50_dG_datasets/Tsuboyama2023_Dataset2_Dataset3_20230416.csv
+  minimum_single_variants: 500
+  minimum_unique_positions: 30
+  natural_domains: 16
+  de_novo_domains_per_family: 2
+  de_novo_families: [EA, GG, XX, EHEE, EEHEE, HEEH, HHH, trRosetta_hallucination]
+  s669_minimum_variants: 5
+  s669_maximum_domains: 8
+  s669_minimum_selected_domains: 4
+  near_duplicate_identity: 0.80
+  near_duplicate_minimum_coverage: 0.90
+  homology_evalue: 0.001
+  homology_sensitivity: 7.5
+  homology_threads: 8
+  require_complete_backbone: true
+
+decomposition:
+  teacher_ids: [mif, esm_if1, proteinmpnn]
+  context_model_id: carp_640M
+  sequence_model_id: esm2_150M
+  training_split: development_train
+  selection_split: development_validation
+  final_training_splits: [development_train, development_validation]
+  context_radius: 4
+  rrr_ranks: [4, 8, 16]
+  ridge_alphas: [1.0, 10.0, 100.0]
+  model_selection_metric: anchored_action_rmse
+  variance_match_on_final_training: true
+  proteinmpnn_order_repeats: 8
+  mif_batch_size: 4
+  shuffled_u_repeats: 20
+  consensus_weighting: equal_after_action_rms_matching
+
+inference:
+  confidence_level: 0.95
+  bootstrap_replicates: 5000
+  top_fraction: 0.10
+  minimum_positive_domain_fraction: 0.51
+  minimum_teacher_replications: 2
+  minimum_s669_finite_domains: 4
+  minimum_s669_positive_domain_fraction: 0.50
+  agreement_gate_minimum_position_spearman: 0.30
+  require_consensus_spearman_ci_lower_positive: true
+  require_consensus_ndcg_ci_lower_positive: true
+  require_two_teacher_spearman_ci_lower_positive: true
+  require_both_megascale_strata_point_positive: true
+  require_s669_spearman_point_positive: true
+  require_shuffled_u_margin_ci_lower_positive: true

@@ -1,0 +1,62 @@
+# Python build and test state
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+
+# Environments, editors, and operating-system files
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+
+# Project artifacts
+/AGENTS.md
+/internal/
+/reports/
+/notes/
+/scratch/
+/protocols/
+/workflows/locks/
+
+/runs/
+/data/
+/teacher_cache/
+/publication/
+/manuscript/
+
+# External model resources
+/external/
+/models/
+/tools/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+
+# Configuration overrides and array formats
+/configs/local*.yaml
+/configs/*local*.yaml
+*.parquet
+*.feather
+*.npy
+*.npz
+*.h5
+*.hdf5
+
+# Runtime logs and temporary files
+*.log
+*.tmp
+*.swp

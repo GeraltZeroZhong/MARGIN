@@ -1,0 +1,170 @@
+schema_version: foundation.v1
+project_name: MARGIN-observability-replication
+data_mode: real
+seed: 20260814
+
+paths:
+  project_root: ..
+  run_dir: runs/observability/replication
+  domain_input: runs/observability/replication/registry
+  structures_dir: data/external/cath/v4_4_0/s40_all
+  benchmark_input: data/raw/benchmarks/benchmark_registry.parquet
+  homology_hits_input: runs/observability/replication/leakage/homology_hits.parquet
+  dms_input: data/raw/benchmarks/dms_variants.parquet
+  embeddings_input: data/workspaces/observability/representations/final_layer.parquet
+
+registry:
+  source_name: CATH
+  source_version: 4.4.0
+  min_length: 40
+  max_length: 300
+  max_resolution_angstrom: 3.0
+  max_missing_fraction: 0.05
+  contact_distance_angstrom: 8.0
+  contact_minimum_sequence_separation: 3
+  buried_rsa_max: 0.20
+  exposed_rsa_min: 0.50
+  high_contact_degree_min: 8
+  conserved_score_min: 0.80
+  variable_score_max: 0.30
+  allowed_amino_acids: ACDEFGHIKLMNPQRSTVWY
+  benchmark_identity_threshold: 0.30
+  exclude_exact_benchmark_ids: true
+  exclude_cath_h: true
+  exclude_cath_t_for_topology_ood: true
+  require_experimental_structure: true
+  require_dssp: true
+  dssp_executable: mkdssp
+
+state_bank:
+  kinds: [random_substitution, core_targeted]
+  corruption_levels: [0.05, 0.15, 0.30]
+  samples_per_domain_kind_level: 1
+  mask_token: X
+  blosum_temperature: 1.0
+  span_mean_length: 4.0
+  rollout_steps: 4
+  rollout_temperature: 1.0
+  model_aware_temperature: 1.0
+  policy_context_radius: 4
+  scaffold_edit_decay: 3.0
+  scaffold_core_penalty: 2.0
+  minimum_positions: 1
+  targeted_operation: mask
+
+student_policy:
+  adapter: python_factory
+  policy_id: esm2-t30-150m-frozen-loo
+  model_revision: facebook/esm2_t30_150M_UR50D@a695f6045e2e32885fa60af20c13cb35398ce30c
+  factory: margin.student.esm2:create_policy
+  model_path: models/esm2_t30_150M_UR50D
+  weights_sha256: c3f1da8aea53bddd32c246c86168c23b9fd72341fb9db9a94436f855f5053566
+  batch_size: 16
+  device: cuda:0
+
+homology:
+  executable: tools/mmseqs/bin/mmseqs
+  sensitivity: 7.5
+  evalue: 0.001
+  threads: 8
+
+decoys:
+  matched_decoys_per_domain: 1
+  require_exact_length: false
+  maximum_length_difference: 8
+  maximum_helix_fraction_difference: 0.10
+  maximum_strand_fraction_difference: 0.10
+  require_different_cath_h: true
+  contact_rewire_swaps_per_edge: 5.0
+  contact_rewire_max_attempts_per_swap: 25
+  permutation_minimum_displacement_fraction: 0.50
+
+teacher_cache:
+  alphabet: ACDEFGHIKLMNPQRSTVWY
+  score_clip: 20.0
+  normalization_temperature: 1.0
+  shard_rows: 100000
+  teachers:
+    - teacher_id: sequence_student
+      adapter: canonical_parquet
+      role: sequence
+      model_name: esm2_t30_150M_UR50D
+      model_revision: facebook/esm2_t30_150M_UR50D@a695f6045e2e32885fa60af20c13cb35398ce30c
+      score_type: log_probability
+    - teacher_id: mifst
+      adapter: mifst
+      role: primary_structure
+      model_name: mifst
+      model_revision: zenodo-6573779-mifst
+      conda_env: margin-models
+      repository: external/repositories/protein-sequence-models
+      repository_revision: af695772c4a1c056d930c95ec7e6428aa042f5cd
+      weights: models/mifst.pt
+      auxiliary_weights: runs/model_cache/carp_640M.pt
+      score_type: log_probability
+      batch_size: 4
+    - teacher_id: proteinmpnn
+      adapter: proteinmpnn
+      role: audit_structure
+      model_name: v_48_020
+      model_revision: v_48_020
+      conda_env: margin-models
+      repository: external/repositories/ProteinMPNN
+      repository_revision: 8907e6671bfbfc92303b5f79c4b5e6ce47cdef57
+      weights: external/repositories/ProteinMPNN/vanilla_model_weights/v_48_020.pt
+      score_type: log_probability
+      batch_size: 1
+      order_repeats: 8
+    - teacher_id: esm_if1
+      adapter: esm_if1_candidates
+      role: audit_structure
+      model_name: esm_if1_gvp4_t16_142M_UR50
+      model_revision: esm_if1_gvp4_t16_142M_UR50
+      conda_env: margin-models
+      repository: external/repositories/fair-esm
+      repository_revision: 2b369911bb5b4b0dda914521b9475cad1656b2ac
+      weights: models/esm_if1_gvp4_t16_142M_UR50.pt
+      score_type: candidate_score
+      batch_size: 1
+
+observability:
+  group_levels: [cath_h, cath_t]
+  folds: 5
+  ridge_alpha: 10.0
+  context_radius: 4
+  top_k: 3
+  shuffled_control_repeats: 5
+  minimum_groups_per_split: 3
+  minimum_rows_per_environment: 30
+
+audit:
+  bootstrap_replicates: 500
+  confidence_level: 0.95
+  cluster_column: domain_id
+  decision_analysis_role: all
+  dms_minimum_variants_per_assay: 20
+  primary_teacher_id: mifst
+  sequence_teacher_id: sequence_student
+  paired_role: paired
+  decoy_roles: [matched_cath]
+
+decision:
+  allow_real_decision: true
+  minimum_environment_advantage_nats: 0.02
+  minimum_paired_decoy_lift_nats: 0.02
+  minimum_dms_spearman: 0.05
+  minimum_observability_jsd_reduction: 0.01
+  minimum_observability_cosine: 0.10
+  minimum_teacher_action_valid_radius: 0.15
+  minimum_directionally_consistent_structure_teachers: 2
+  minimum_on_policy_advantage_nats: 0.01
+  require_positive_ci_lower_bound: true
+
+plot:
+  journal: nature
+  width_inches: 7.2
+  height_inches: 3.8
+  dpi: 300
+  formats: [png, pdf, svg]
+  minimum_marker_area: 30.0
+  maximum_marker_area: 220.0
