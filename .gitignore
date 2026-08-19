@@ -36,6 +36,18 @@ Thumbs.db
 /publication/
 /manuscript/
 
+# Local manuscript and publication authoring
+/configs/publication_audit.yaml
+/scripts/publication/build_figures.py
+/scripts/publication/export_bundle.py
+/scripts/workflows/stability/audit_publication.py
+/src/margin/manuscript_figures.py
+/src/margin/publication.py
+/src/margin/studies/stability/publication_audit.py
+/src/margin/studies/stability/publication_figure.py
+/tests/test_publication.py
+/tests/test_publication_audit.py
+
 # External model resources
 /external/
 /models/

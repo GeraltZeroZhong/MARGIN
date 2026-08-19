@@ -16,7 +16,6 @@ from margin.pipeline import (
     prepare_registry_stage,
     run_foundation_audit,
 )
-from margin.publication import export_publication_bundle
 from margin.teachers.external import run_external_teacher
 from margin.workflows import WORKFLOWS, get_workflow
 
@@ -38,15 +37,6 @@ def main() -> None:
         print(f"package={workflow.package}")
         print(f"config={workflow.config}")
         print(f"scripts={workflow.scripts}")
-        return
-    if arguments.command == "export-publication":
-        manifest, dictionary = export_publication_bundle(
-            arguments.project_root,
-            arguments.output,
-            frozen_run_root=arguments.frozen_run_root,
-        )
-        print(f"manifest={manifest}")
-        print(f"data_dictionary={dictionary}")
         return
     if arguments.command == "validate-config":
         config = load_config(arguments.config)
@@ -130,12 +120,6 @@ def _parser() -> argparse.ArgumentParser:
         "describe-workflow", help="show the package, config, and scripts for one workflow"
     )
     describe.add_argument("name")
-    publication = commands.add_parser(
-        "export-publication", help="export curated figures and CSV source data"
-    )
-    publication.add_argument("--project-root", type=Path, default=Path.cwd())
-    publication.add_argument("--output", type=Path, default=Path("publication"))
-    publication.add_argument("--frozen-run-root", type=Path)
     run = commands.add_parser("run", help="execute the complete foundation audit")
     run.add_argument("--config", type=Path, required=True)
     run.add_argument("--device", default="auto")
