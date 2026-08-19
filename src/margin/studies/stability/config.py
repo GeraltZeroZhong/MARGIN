@@ -165,6 +165,7 @@ class InferenceConfig(StrictModel):
     confidence_level: float = Field(0.95, gt=0, lt=1)
     bootstrap_replicates: PositiveInt = 5000
     external_position_bootstrap_replicates: PositiveInt = 5000
+    position_shuffle_repeats: PositiveInt = 20
     top_fraction: float = Field(0.10, gt=0, le=1)
     minimum_teacher_replications: PositiveInt = 2
     require_primary_spearman_ci_lower_positive: bool = True

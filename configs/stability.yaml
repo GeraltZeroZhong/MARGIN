@@ -91,6 +91,7 @@ inference:
   confidence_level: 0.95
   bootstrap_replicates: 5000
   external_position_bootstrap_replicates: 5000
+  position_shuffle_repeats: 20
   top_fraction: 0.10
   minimum_teacher_replications: 2
   require_primary_spearman_ci_lower_positive: true

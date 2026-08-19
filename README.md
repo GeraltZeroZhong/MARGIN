@@ -143,6 +143,7 @@ Each workflow directory contains focused entry points with standard `--help` out
 ```bash
 python scripts/workflows/observability/prepare_replication.py --help
 python scripts/workflows/stability/evaluate.py --help
+python scripts/workflows/stability/audit_position_specificity.py --help
 ```
 
 ## Workflow catalog
@@ -155,7 +156,7 @@ python scripts/workflows/stability/evaluate.py --help
 | `counterfactuals` | Structure-residual behavior under matched counterfactuals | `margin.studies.counterfactuals` |
 | `mechanisms` | In-distribution perturbation and denoising analyses | `margin.studies.mechanisms` |
 | `action_validation` | $G/C/U$ action decomposition and component evaluation | `margin.studies.action_validation` |
-| `stability` | Teacher calibration, consensus scoring, and strong sequence controls | `margin.studies.stability` |
+| `stability` | Model calibration, consensus scoring, strong sequence controls, and position specificity | `margin.studies.stability` |
 | `external_validation` | Cross-platform evaluation with fixed scoring components | `margin.studies.external_validation` |
 | `structure_sensitivity` | Matched-backbone and coordinate-sensitivity analysis | `margin.studies.structure_sensitivity` |
 

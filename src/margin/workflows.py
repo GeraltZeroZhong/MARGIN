@@ -62,7 +62,7 @@ WORKFLOWS: tuple[Workflow, ...] = (
     ),
     Workflow(
         "stability",
-        "Calibrated paired-action evaluation and strong sequence controls.",
+        "Calibrated paired-action evaluation, strong sequence controls, and position specificity.",
         "margin.studies.stability",
         Path("configs/stability.yaml"),
         Path("scripts/workflows/stability"),
