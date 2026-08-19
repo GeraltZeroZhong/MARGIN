@@ -131,7 +131,7 @@ a normalized natural-log probability:
 $$
 L_t(i,a) = \log p_t(a \mid x_i),
 \qquad
-\operatorname{logsumexp}_{a} L_t(i,a) = 0.
+\mathrm{logsumexp}_{a} L_t(i,a) = 0.
 $$
 
 All arrays follow the fixed amino-acid order `ACDEFGHIKLMNPQRSTVWY`. An adapter can begin with
