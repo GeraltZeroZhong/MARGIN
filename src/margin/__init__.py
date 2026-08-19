@@ -3,4 +3,4 @@
 from margin.constants import AA_ALPHABET, SCHEMA_VERSION
 
 __all__ = ["AA_ALPHABET", "SCHEMA_VERSION"]
-__version__ = "0.3.0"
+__version__ = "0.1.0"
