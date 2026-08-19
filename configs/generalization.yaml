@@ -1,0 +1,105 @@
+schema_version: generalization.v1
+seed: 20260815
+
+paths:
+  project_root: ..
+  run_dir: runs/generalization
+  storage_dir: data/workspaces/generalization
+  observability_config: configs/observability.yaml
+  observability_replication_config: configs/observability_replication.yaml
+  observability_run: runs/observability
+  observability_replication_run: runs/observability/replication
+  observability_carp_representations: runs/observability/cache/replication_carp
+  observability_esm2_representations: runs/observability/cache/replication_layers
+  protein_gym_metadata: data/external/proteingym_DMS_substitutions.csv
+  protein_gym_substitutions: data/external/DMS_ProteinGym_substitutions_v1.3.zip
+  mmseqs_executable: tools/mmseqs/bin/mmseqs
+  sequence_models_repository: external/repositories/protein-sequence-models
+  carp_76m_checkpoint: models/protein_sequence_models/carp_76M.pt
+  carp_640m_checkpoint: models/protein_sequence_models/carp_640M.pt
+  mif_checkpoint: models/protein_sequence_models/mif.pt
+  esm2_150m_model: models/esm2_t30_150M_UR50D
+  esm2_650m_checkpoint: models/esm2_t33_650M_UR50D.pt
+  esm1b_650m_checkpoint: models/esm1b_t33_650M_UR50S.pt
+
+architecture:
+  positions_per_domain: 64
+  state_kind: native_reference
+  feature_kind: strict_loo_final_query
+  primary_target: consensus_leave_mifst_out
+  rrr_rank: 16
+  ridge_alpha: 10.0
+  control_repeats: 5
+  controls:
+    - global
+    - within_domain
+    - within_wild_type
+    - within_environment
+  models:
+    - model_id: carp_76M
+      family: CARP
+      scale_millions: 76
+      loader: carp
+      checkpoint_path_key: carp_76m_checkpoint
+      layer: 32
+      batch_size: 16
+    - model_id: carp_640M
+      family: CARP
+      scale_millions: 640
+      loader: carp
+      checkpoint_path_key: carp_640m_checkpoint
+      layer: 56
+      batch_size: 4
+      reuse_observability_store: carp
+    - model_id: esm2_150M
+      family: ESM2
+      scale_millions: 150
+      loader: hf_esm
+      checkpoint_path_key: esm2_150m_model
+      layer: 30
+      batch_size: 16
+      reuse_observability_store: esm2
+    - model_id: esm2_650M
+      family: ESM2
+      scale_millions: 650
+      loader: fair_esm
+      checkpoint_path_key: esm2_650m_checkpoint
+      layer: 33
+      batch_size: 4
+    - model_id: esm1b_650M
+      family: ESM1b
+      scale_millions: 650
+      loader: fair_esm
+      checkpoint_path_key: esm1b_650m_checkpoint
+      layer: 33
+      batch_size: 2
+
+dms:
+  source_pattern: _Tsuboyama_2023_
+  minimum_single_variants: 100
+  identity_threshold: 0.30
+  minimum_bidirectional_coverage: 0.80
+  homology_evalue: 0.001
+  homology_sensitivity: 7.5
+  homology_threads: 8
+  primary_alpha: 1.0
+  sensitivity_alphas: [0.25, 0.5, 2.0]
+  top_fraction: 0.10
+  minimum_mean_spearman_increment: 0.02
+  minimum_positive_assay_fraction: 0.60
+  require_positive_cluster_ci_lower: true
+  require_positive_mean_ndcg_increment: true
+
+inference:
+  confidence_level: 0.95
+  bootstrap_replicates: 2000
+  minimum_jsd_reduction_nats: 0.01
+  minimum_residual_cosine: 0.10
+  require_positive_ci_lower: true
+  require_positive_control_margin_ci_lower: true
+
+environments:
+  gate_training_split: development_train
+  gate_selection_split: development_validation
+  evaluation_split: observability_locked_test_reused_postdecision
+  minimum_rows_per_route: 30

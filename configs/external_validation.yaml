@@ -1,0 +1,46 @@
+schema_version: external_validation.v1
+status: FROZEN_BEFORE_CROSS_PLATFORM_MODEL_SCORING
+seed: 20260823
+
+paths:
+  project_root: ..
+  run_dir: runs/external_validation
+  storage_dir: data/workspaces/external_validation
+  source_csv: external/repositories/ThermoMPNN/data_all/testing/fireprot_HF.csv
+  foundation_config: configs/observability_replication.yaml
+  stability_config: configs/stability.yaml
+  mmseqs_executable: tools/mmseqs/bin/mmseqs
+  observability_domains: runs/observability/replication/registry/domains.parquet
+  generalization_assays: runs/generalization/dms/assays.parquet
+  counterfactual_domains: runs/counterfactuals/panel/domains.parquet
+  mechanism_domains: runs/mechanisms/panel/domains.parquet
+  action_validation_domains: runs/action_validation/panel/domains.parquet
+  stability_domains: runs/stability/panel/domains.parquet
+
+panel:
+  source_population: FireProtDB_homologue_free
+  minimum_unique_variants: 15
+  minimum_unique_positions: 10
+  maximum_length: 400
+  require_complete_backbone: true
+  prior_homology_maximum_identity: 0.30
+  prior_homology_minimum_bidirectional_coverage: 0.80
+  homology_evalue: 0.001
+  homology_sensitivity: 7.5
+  homology_threads: 8
+  minimum_selected_domains: 8
+
+inference:
+  primary_score: temperature_scaled_three_teacher_action
+  comparator_score: temperature_scaled_three_teacher_g_plus_c_plus
+  primary_metric: domain_equal_mean_spearman_margin
+  secondary_metric: domain_equal_mean_ndcg10_margin
+  bootstrap_replicates: 5000
+  confidence_level: 0.95
+  minimum_positive_domain_fraction: 0.60
+  require_primary_ci_lower_positive: true
+  require_secondary_point_positive: true
+  effect_convention: negative_FireProt_ddG_positive_means_stabilizing
+  duplicate_measurement_aggregation: median_ddG_then_negate
+  routing_allowed: false
+  changes_primary_decision: false

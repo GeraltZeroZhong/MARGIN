@@ -1,0 +1,165 @@
+schema_version: foundation.v1
+project_name: MARGIN
+data_mode: synthetic
+seed: 20260814
+
+paths:
+  project_root: ..
+  run_dir: runs/synthetic
+
+registry:
+  source_name: synthetic-fixture
+  source_version: "1"
+  min_length: 40
+  max_length: 80
+  max_resolution_angstrom: 3.0
+  max_missing_fraction: 0.05
+  contact_distance_angstrom: 8.0
+  contact_minimum_sequence_separation: 3
+  buried_rsa_max: 0.20
+  exposed_rsa_min: 0.50
+  high_contact_degree_min: 6
+  conserved_score_min: 0.80
+  variable_score_max: 0.30
+  allowed_amino_acids: ACDEFGHIKLMNPQRSTVWY
+  benchmark_identity_threshold: 0.30
+  exclude_exact_benchmark_ids: true
+  exclude_cath_h: true
+  exclude_cath_t_for_topology_ood: true
+  require_experimental_structure: false
+  require_dssp: false
+  dssp_executable: mkdssp
+
+state_bank:
+  kinds:
+    - random_mask
+    - random_substitution
+    - blosum_substitution
+    - model_aware_offline
+    - on_policy_rollout
+    - span_mask
+    - core_targeted
+    - surface_targeted
+  corruption_levels: [0.05, 0.15, 0.30]
+  samples_per_domain_kind_level: 1
+  mask_token: X
+  blosum_temperature: 1.0
+  span_mean_length: 4.0
+  rollout_steps: 4
+  rollout_temperature: 1.0
+  model_aware_temperature: 1.0
+  policy_context_radius: 4
+  scaffold_edit_decay: 3.0
+  scaffold_core_penalty: 2.0
+  minimum_positions: 1
+  targeted_operation: mask
+
+student_policy:
+  adapter: synthetic
+  policy_id: synthetic-sequence
+  model_revision: fixture-v1
+
+homology:
+  executable: tools/mmseqs/bin/mmseqs
+  sensitivity: 7.5
+  evalue: 0.001
+  threads: 8
+
+decoys:
+  matched_decoys_per_domain: 1
+  require_exact_length: true
+  maximum_length_difference: 0
+  maximum_helix_fraction_difference: 0.15
+  maximum_strand_fraction_difference: 0.15
+  require_different_cath_h: true
+  contact_rewire_swaps_per_edge: 2.0
+  contact_rewire_max_attempts_per_swap: 25
+  permutation_minimum_displacement_fraction: 0.50
+
+teacher_cache:
+  alphabet: ACDEFGHIKLMNPQRSTVWY
+  score_clip: 20.0
+  normalization_temperature: 1.0
+  shard_rows: 100000
+  teachers:
+    - teacher_id: sequence_student
+      adapter: synthetic
+      role: sequence
+      model_name: synthetic-sequence
+      model_revision: "1"
+      score_type: log_probability
+    - teacher_id: mifst
+      adapter: synthetic
+      role: primary_structure
+      model_name: synthetic-structure-a
+      model_revision: "1"
+      score_type: log_probability
+    - teacher_id: proteinmpnn
+      adapter: synthetic
+      role: audit_structure
+      model_name: synthetic-structure-b
+      model_revision: "1"
+      score_type: log_probability
+    - teacher_id: esm_if1
+      adapter: synthetic
+      role: audit_structure
+      model_name: synthetic-structure-c
+      model_revision: "1"
+      score_type: candidate_score
+
+observability:
+  group_levels: [cath_h, cath_t]
+  folds: 3
+  ridge_alpha: 5.0
+  context_radius: 3
+  top_k: 3
+  shuffled_control_repeats: 3
+  minimum_groups_per_split: 3
+  minimum_rows_per_environment: 10
+
+on_policy:
+  reference_offline_kinds: [random_mask, random_substitution, span_mask]
+  model_aware_kind: model_aware_offline
+  on_policy_kind: on_policy_rollout
+  match_columns:
+    - corruption_ratio
+    - edit_distance_fraction
+    - mask_count
+    - student_entropy
+    - student_top1_margin
+  match_caliper: 2.0
+  maximum_standardized_mean_difference: 0.25
+  high_confidence_margin: 0.30
+  minimum_match_fraction: 0.50
+
+audit:
+  bootstrap_replicates: 100
+  confidence_level: 0.95
+  cluster_column: domain_id
+  decision_analysis_role: external_benchmark
+  dms_minimum_variants_per_assay: 10
+  primary_teacher_id: mifst
+  sequence_teacher_id: sequence_student
+  paired_role: paired
+  decoy_roles: [matched_cath, permuted, contact_rewired, shuffled_residue]
+
+decision:
+  allow_real_decision: false
+  minimum_environment_advantage_nats: 0.02
+  minimum_paired_decoy_lift_nats: 0.02
+  minimum_dms_spearman: 0.05
+  minimum_observability_jsd_reduction: 0.01
+  minimum_observability_cosine: 0.10
+  minimum_teacher_action_valid_radius: 0.15
+  minimum_directionally_consistent_structure_teachers: 2
+  minimum_on_policy_advantage_nats: 0.01
+  require_positive_ci_lower_bound: true
+
+plot:
+  journal: nature
+  width_inches: 7.2
+  height_inches: 3.8
+  dpi: 300
+  formats: [png, pdf, svg]
+  minimum_marker_area: 30.0
+  maximum_marker_area: 220.0

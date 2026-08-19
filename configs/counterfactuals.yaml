@@ -1,0 +1,71 @@
+schema_version: counterfactuals.v1
+seed: 20260816
+
+paths:
+  project_root: ..
+  run_dir: runs/counterfactuals
+  storage_dir: data/workspaces/counterfactuals
+  foundation_config: configs/foundation.yaml
+  generalization_config: configs/generalization.yaml
+  generalization_run: runs/generalization
+  observability_replication_run: runs/observability/replication
+  current_assays: runs/generalization/dms/assays.parquet
+  cath_domain_list: data/external/cath/v4_4_0/cath-domain-list-v4_4_0.txt
+  cath_fasta: data/external/cath/v4_4_0/cath-domain-seqs-v4_4_0.fa
+  s669_root: external/repositories/proteinmpnn_ddg/paper/datasets/s669
+  s669_repository: external/repositories/proteinmpnn_ddg
+  megascale_archive: data/external/tsuboyama/7844779/Processed_K50_dG_datasets.zip
+  megascale_structures: data/external/tsuboyama/7992926/AlphaFold_model_PDBs
+  tsuboyama_reference_structures: external/repositories/proteinmpnn_ddg/paper/datasets/tsuboyama/pdb
+  current52_supplemental_structures: data/external/counterfactuals/current52_structures
+  mmseqs_executable: tools/mmseqs/bin/mmseqs
+  foldseek_executable: tools/foldseek/bin/foldseek
+  sequence_models_repository: external/repositories/protein-sequence-models
+  mif_checkpoint: models/protein_sequence_models/mif.pt
+
+panel:
+  s669_minimum_variants_per_domain: 3
+  megascale_member: Processed_K50_dG_datasets/Tsuboyama2023_Dataset2_Dataset3_20230416.csv
+  megascale_minimum_single_variants: 500
+  megascale_domains_per_family: 2
+  megascale_design_families: [EA, GG, XX, EHEE, EEHEE, HEEH, HHH, trRosetta_hallucination]
+  identity_threshold: 0.30
+  minimum_bidirectional_coverage: 0.80
+  homology_evalue: 0.001
+  homology_sensitivity: 7.5
+  homology_threads: 8
+  structural_tmscore_threshold: 0.50
+  structural_minimum_bidirectional_coverage: 0.80
+  foldseek_threads: 8
+  require_s669_cath_assignment: true
+  require_complete_backbone: true
+
+counterfactuals:
+  primary_role: contact_rewired_5
+  replication_role: circular_permuted
+  rewiring_swaps_per_edge: [0.5, 1.0, 2.0, 5.0]
+  rewire_max_attempts_per_swap: 25
+  contact_distance_angstrom: 8.0
+  contact_minimum_sequence_separation: 3
+  circular_minimum_displacement_fraction: 0.50
+  matched_random_repeats: 20
+
+models:
+  sequence_model_id: esm2_150M
+  predictor_model_id: carp_640M
+  rrr_rank: 16
+  ridge_alpha: 10.0
+  residual_alpha: 1.0
+  mif_batch_size: 2
+
+inference:
+  confidence_level: 0.95
+  bootstrap_replicates: 5000
+  top_fraction: 0.10
+  minimum_positive_domain_fraction: 0.51
+  require_spearman_ci_lower_positive: true
+  require_ndcg_ci_lower_positive: true
+  require_topk_point_positive: true
+  require_replication_counterfactual_point_positive: true
+  require_random_control_margin_ci_lower_positive: true
+  require_both_strata_point_positive: true
