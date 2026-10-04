@@ -1,4 +1,4 @@
-"""Canonical foundation audit data-registry schemas."""
+"""Canonical audit data-registry schemas."""
 
 from __future__ import annotations
 

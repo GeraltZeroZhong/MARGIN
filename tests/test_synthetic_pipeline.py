@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pandas as pd
 import yaml
 
-from margin.pipeline import run_foundation_audit
+from margin.pipeline import run_audit
 
 
 def test_complete_synthetic_pipeline_emits_all_audit_deliverables(tmp_path: Path) -> None:
@@ -13,9 +14,11 @@ def test_complete_synthetic_pipeline_emits_all_audit_deliverables(tmp_path: Path
     payload["paths"]["project_root"] = str(Path.cwd())
     payload["paths"]["run_dir"] = str(tmp_path / "run")
     payload["audit"]["bootstrap_replicates"] = 20
+    payload["audit"]["confidence_level"] = 0.90
+    payload["plot"]["formats"] = ["png"]
     config_path = tmp_path / "synthetic.yaml"
     config_path.write_text(yaml.safe_dump(payload, sort_keys=False))
-    result = run_foundation_audit(config_path)
+    result = run_audit(config_path)
     run = tmp_path / "run"
     assert result.decision.decision == "SYNTHETIC_ONLY"
     required = [
@@ -28,13 +31,22 @@ def test_complete_synthetic_pipeline_emits_all_audit_deliverables(tmp_path: Path
         run / "audit/dms_coverage.parquet",
         run / "audit/paired_decoy_summary.parquet",
         run / "audit/on_policy_effect_summary.parquet",
-        run / "reports/foundation_report.md",
+        run / "reports/audit_report.md",
         run / "audit/audit_result_table.parquet",
-        run / "source_data/figure_1_distillability_map.csv",
-        run / "figures/figure_1_distillability_map.pdf",
+        run / "source_data/distillability_map.csv",
+        run / "figures/distillability_map.png",
         run / "manifest.json",
     ]
     assert all(path.exists() and path.stat().st_size > 0 for path in required)
+    report_path = run / "reports/audit_report.md"
+    report = report_path.read_text()
+    assert "90% CI" in report
+    report_links = re.findall(r"\[[^\]]*\]\(([^)]+)\)", report)
+    assert report_links
+    assert all((report_path.parent / target).is_file() for target in report_links)
+    figure_links = [target for target in report_links if target.startswith("../figures/")]
+    assert len(figure_links) == 2
+    assert all(Path(target).suffix == ".png" for target in figure_links)
     criteria = pd.read_parquet(run / "audit/decision_criteria.parquet")
     assert set(criteria["status"]) <= {"PASS", "FAIL", "INCOMPLETE"}
     assert criteria["criterion"].nunique() == 9

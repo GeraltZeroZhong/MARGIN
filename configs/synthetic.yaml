@@ -1,3 +1,4 @@
+# Deterministic demo parameters for generated geometry, sequences, and scores.
 schema_version: foundation.v1
 project_name: MARGIN
 data_mode: synthetic
@@ -60,7 +61,7 @@ student_policy:
   model_revision: fixture-v1
 
 homology:
-  executable: tools/mmseqs/bin/mmseqs
+  executable: mmseqs
   sensitivity: 7.5
   evalue: 0.001
   threads: 8
@@ -88,19 +89,19 @@ teacher_cache:
       model_name: synthetic-sequence
       model_revision: "1"
       score_type: log_probability
-    - teacher_id: mifst
+    - teacher_id: structure_primary
       adapter: synthetic
       role: primary_structure
       model_name: synthetic-structure-a
       model_revision: "1"
       score_type: log_probability
-    - teacher_id: proteinmpnn
+    - teacher_id: structure_audit_a
       adapter: synthetic
       role: audit_structure
       model_name: synthetic-structure-b
       model_revision: "1"
       score_type: log_probability
-    - teacher_id: esm_if1
+    - teacher_id: structure_audit_b
       adapter: synthetic
       role: audit_structure
       model_name: synthetic-structure-c
@@ -138,7 +139,7 @@ audit:
   cluster_column: domain_id
   decision_analysis_role: external_benchmark
   dms_minimum_variants_per_assay: 10
-  primary_teacher_id: mifst
+  primary_teacher_id: structure_primary
   sequence_teacher_id: sequence_student
   paired_role: paired
   decoy_roles: [matched_cath, permuted, contact_rewired, shuffled_residue]
@@ -156,7 +157,7 @@ decision:
   require_positive_ci_lower_bound: true
 
 plot:
-  journal: nature
+  journal: generic
   width_inches: 7.2
   height_inches: 3.8
   dpi: 300

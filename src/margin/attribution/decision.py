@@ -1,4 +1,4 @@
-"""Explicit foundation decision logic with branch outcomes and missing-evidence handling."""
+"""Explicit audit decision logic with branch outcomes and missing-evidence handling."""
 
 from __future__ import annotations
 
@@ -27,20 +27,20 @@ DecisionCode = Literal[
 
 
 @dataclass(frozen=True)
-class FoundationDecision:
+class AuditDecision:
     decision: DecisionCode
     criteria: pd.DataFrame
     decision_record: dict[str, Any]
 
 
-def evaluate_foundation_decision(
+def evaluate_decision(
     teacher: TeacherValueAudit,
     observability: ObservabilityAudit,
     on_policy: OnPolicyAudit,
     distillability: DistillabilityAudit,
     config: ProjectConfig,
-) -> FoundationDecision:
-    """Evaluate the fixed foundation audit criteria and route the project branch."""
+) -> AuditDecision:
+    """Evaluate the fixed audit criteria and route the project branch."""
 
     criteria = pd.DataFrame(
         [
@@ -73,7 +73,7 @@ def evaluate_foundation_decision(
         decision = "SYNTHETIC_ONLY"
         rationale = (
             "Synthetic fixtures validate software behavior but cannot support a scientific "
-            "foundation decision."
+            "audit decision."
         )
     record = {
         "decision": decision,
@@ -86,7 +86,7 @@ def evaluate_foundation_decision(
         "criteria_failed": int((criteria["status"] == "FAIL").sum()),
         "criteria_incomplete": int((criteria["status"] == "INCOMPLETE").sum()),
     }
-    return FoundationDecision(decision=decision, criteria=criteria, decision_record=record)
+    return AuditDecision(decision=decision, criteria=criteria, decision_record=record)
 
 
 def _environment_criterion(
@@ -466,7 +466,7 @@ def _branch(criteria: pd.DataFrame, config: ProjectConfig) -> tuple[DecisionCode
             "DROP_ON_POLICY",
             "Residuals are linearly accessible, but on-policy states add no matched value.",
         )
-    return "GO", "All fixed foundation decision criteria pass."
+    return "GO", "All fixed audit decision criteria pass."
 
 
 def _criterion(

@@ -8,7 +8,7 @@ from typing import Any
 
 import pandas as pd
 
-from margin.attribution.decision import FoundationDecision
+from margin.attribution.decision import AuditDecision
 from margin.attribution.distillability import DistillabilityAudit
 from margin.attribution.observability import ObservabilityAudit
 from margin.attribution.on_policy import OnPolicyAudit
@@ -29,7 +29,7 @@ def write_audit_bundle(
     observability: ObservabilityAudit,
     on_policy: OnPolicyAudit,
     distillability: DistillabilityAudit,
-    decision_result: FoundationDecision,
+    decision_result: AuditDecision,
     config: ProjectConfig,
     upstream_manifests: list[Path],
 ) -> dict[str, Any]:
@@ -67,7 +67,7 @@ def write_audit_bundle(
         path = directory / f"{name}.parquet"
         write_parquet(path, table)
         table_records[name] = table_manifest(path, table)
-    decision_path = directory / "foundation_decision.json"
+    decision_path = directory / "decision.json"
     write_json(decision_path, decision_result.decision_record)
     result_table = _machine_result_table(decision_result, config)
     result_path = directory / "audit_result_table.parquet"
@@ -105,16 +105,16 @@ def _write_source_data(
     observability: ObservabilityAudit,
     on_policy: OnPolicyAudit,
     distillability: DistillabilityAudit,
-    decision_result: FoundationDecision,
+    decision_result: AuditDecision,
     config: ProjectConfig,
 ) -> dict[str, Any]:
     directory = config.paths.source_data_dir
     directory.mkdir(parents=True, exist_ok=True)
     sources = {
-        "figure_1_distillability_map": distillability.map_table,
-        "figure_2_paired_decoy": teacher.specificity_summary,
-        "figure_3_observability": observability.environment_summary,
-        "figure_4_on_policy": on_policy.effect_summary,
+        "distillability_map": distillability.map_table,
+        "paired_decoy": teacher.specificity_summary,
+        "observability": observability.environment_summary,
+        "on_policy": on_policy.effect_summary,
         "decision_criteria": _serializable_criteria(decision_result.criteria),
     }
     records: dict[str, Any] = {}
@@ -141,7 +141,7 @@ def _serializable_criteria(criteria: pd.DataFrame) -> pd.DataFrame:
 
 
 def _machine_result_table(
-    decision_result: FoundationDecision, config: ProjectConfig
+    decision_result: AuditDecision, config: ProjectConfig
 ) -> pd.DataFrame:
     table = _serializable_criteria(decision_result.criteria)
     table.insert(0, "project", config.project_name)

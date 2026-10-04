@@ -46,7 +46,7 @@ def audit_teacher_value(
     config: ProjectConfig,
     dms: pd.DataFrame | None = None,
 ) -> TeacherValueAudit:
-    """Run every foundation audit teacher-value audit against the canonical score matrix."""
+    """Run every audit teacher-value audit against the canonical score matrix."""
 
     validate_score_table(cache.scores)
     position_metrics = _position_metrics(cache.scores, bank, config)

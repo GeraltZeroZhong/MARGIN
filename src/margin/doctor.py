@@ -1,4 +1,4 @@
-"""Preflight checks for the exact inputs needed by a configured foundation audit run."""
+"""Preflight checks for the exact inputs needed by a configured audit run."""
 
 from __future__ import annotations
 

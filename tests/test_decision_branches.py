@@ -39,7 +39,7 @@ CRITERIA = [
         ({"independent_dms_ranking": "INCOMPLETE"}, "INCOMPLETE"),
     ],
 )
-def test_fixed_gate_branch_routing(
+def test_configured_gate_branch_routing(
     synthetic_config: ProjectConfig,
     overrides: dict[str, str],
     expected: str,

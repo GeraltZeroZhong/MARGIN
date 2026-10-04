@@ -1,4 +1,4 @@
-"""Validated configuration for every foundation audit algorithm and decision threshold."""
+"""Validated configuration for every audit algorithm and decision threshold."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ class StrictModel(BaseModel):
 
 class PathsConfig(StrictModel):
     project_root: Path = Path("..")
-    run_dir: Path = Path("runs/foundation")
+    run_dir: Path = Path("runs/audit")
     domain_input: Path | None = None
     audit_domain_input: Path | None = None
     cath_domain_list: Path | None = None
@@ -294,7 +294,7 @@ class DecisionConfig(StrictModel):
 
 
 class PlotConfig(StrictModel):
-    journal: Literal["nature", "generic"] = "nature"
+    journal: Literal["nature", "generic"] = "generic"
     width_inches: float = Field(7.2, gt=0)
     height_inches: float = Field(3.8, gt=0)
     dpi: PositiveInt = 300

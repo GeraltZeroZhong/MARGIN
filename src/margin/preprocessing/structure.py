@@ -176,8 +176,8 @@ def _dssp_annotations(
             annotations = _run_dssp(model, extracted.name, executable)
             return _format_dssp(annotations)
     if path.suffix.lower() == ".pdb" and not _has_pdb_header(path):
-        # Public model archives used by counterfactual study contain valid ATOM records but
-        # omit HEADER. DSSP 4.x then attempts mmCIF parsing despite the .pdb
+        # PDB files can contain valid ATOM records while omitting HEADER.
+        # DSSP 4.x then attempts mmCIF parsing despite the .pdb
         # suffix, so supply the format marker in a temporary view.
         with tempfile.NamedTemporaryFile(suffix=".pdb") as named_pdb:
             named_pdb.write(b"HEADER    PROTEIN STRUCTURE\n")

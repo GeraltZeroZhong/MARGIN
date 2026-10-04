@@ -8,15 +8,15 @@ from margin.data_registry.cath import read_cath_fasta
 from margin.preprocessing.structure import _sequence_mapping
 
 
-def test_official_cath_fasta_header_extracts_domain_id(tmp_path: Path) -> None:
+def test_cath_fasta_header_extracts_synthetic_domain_id(tmp_path: Path) -> None:
     path = tmp_path / "cath.fa"
-    path.write_text(">cath|4_4_0|4a4jA00/2-70 example\nACDEFG\n>1abcB01/4-9\nHIKLMN\n")
-    assert read_cath_fasta(path) == {"4a4jA00": "ACDEFG", "1abcB01": "HIKLMN"}
+    path.write_text(">cath|4_4_0|SYN001A00/2-70 example\nACDEFG\n>SYN002B01/4-9\nHIKLMN\n")
+    assert read_cath_fasta(path) == {"SYN001A00": "ACDEFG", "SYN002B01": "HIKLMN"}
 
 
 def test_duplicate_cath_domain_header_is_rejected(tmp_path: Path) -> None:
     path = tmp_path / "duplicate.fa"
-    path.write_text(">cath|4_4_0|4a4jA00/2-70\nACDEFG\n>cath|4_4_0|4a4jA00/2-70\nACDEFG\n")
+    path.write_text(">cath|4_4_0|SYN001A00/2-70\nACDEFG\n>cath|4_4_0|SYN001A00/2-70\nACDEFG\n")
     with pytest.raises(ValueError, match="duplicate"):
         read_cath_fasta(path)
 

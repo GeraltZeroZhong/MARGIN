@@ -1,1 +1,1 @@
-"""foundation audit visualization and reporting."""
+"""Audit visualization and reporting."""

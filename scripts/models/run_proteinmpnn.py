@@ -7,11 +7,14 @@ import argparse
 import sys
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-import torch
-from torch import Tensor
+
+if TYPE_CHECKING:
+    import torch
+    from torch import Tensor
 
 from margin.teachers.runner_cache import (
     completed_request_ids,
@@ -25,6 +28,8 @@ AA_ALPHABET = "ACDEFGHIKLMNPQRSTVWY"
 
 def main() -> None:
     arguments = parse_arguments()
+    import torch
+
     repository = Path(arguments.repository).resolve()
     sys.path.insert(0, str(repository))
     from protein_mpnn_utils import ProteinMPNN, tied_featurize
@@ -145,6 +150,8 @@ def monte_carlo_conditional_probabilities(
 ) -> np.ndarray:
     """Average probabilities over orders shared by every structure role of a state."""
 
+    import torch
+
     draws = []
     for repeat in range(repeats):
         generator = torch.Generator(device=device).manual_seed(
@@ -206,6 +213,8 @@ def score_rows(
 
 
 def choose_device(value: str) -> torch.device:
+    import torch
+
     if value == "auto":
         return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     return torch.device(value)
