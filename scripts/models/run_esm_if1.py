@@ -7,10 +7,13 @@ import argparse
 import sys
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-import torch
+
+if TYPE_CHECKING:
+    import torch
 
 from margin.teachers.runner_cache import (
     completed_request_ids,
@@ -24,6 +27,8 @@ AA_ALPHABET = "ACDEFGHIKLMNPQRSTVWY"
 
 def main() -> None:
     arguments = parse_arguments()
+    import torch
+
     if arguments.repository:
         sys.path.insert(0, str(Path(arguments.repository).resolve()))
     import biotite.structure
@@ -121,6 +126,8 @@ def score_rows(
 
 
 def choose_device(value: str) -> torch.device:
+    import torch
+
     if value == "auto":
         return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     return torch.device(value)

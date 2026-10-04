@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "margin"
-version = "0.1.0"
+version = "0.1.1"
 description = "Modality attribution of residual gain in inverse-folding networks"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -35,8 +35,12 @@ models = [
 [project.scripts]
 margin = "margin.cli:main"
 
+[tool.setuptools]
+include-package-data = false
+
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["margin", "margin.*"]
 
 [tool.pytest.ini_options]
 addopts = "-ra"
@@ -51,6 +55,3 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/margin/analysis/report.py" = ["E501"]
-"src/margin/studies/action_validation/report.py" = ["E501"]
-"src/margin/studies/generalization/report.py" = ["E501"]
-"src/margin/studies/stability/report.py" = ["E501"]

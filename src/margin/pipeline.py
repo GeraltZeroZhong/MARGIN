@@ -1,4 +1,4 @@
-"""End-to-end foundation audit over the reusable scientific modules."""
+"""End-to-end audit over the reusable scientific modules."""
 
 from __future__ import annotations
 
@@ -11,8 +11,8 @@ import pandas as pd
 import yaml
 
 from margin.analysis.plots import make_audit_figures
-from margin.analysis.report import write_foundation_report, write_run_index
-from margin.attribution.decision import FoundationDecision, evaluate_foundation_decision
+from margin.analysis.report import write_audit_report, write_run_index
+from margin.attribution.decision import AuditDecision, evaluate_decision
 from margin.attribution.distillability import build_distillability_map
 from margin.attribution.io import write_audit_bundle
 from margin.attribution.observability import audit_observability, load_embeddings
@@ -71,7 +71,7 @@ from margin.teachers.synthetic import build_synthetic_teacher_scores
 @dataclass(frozen=True)
 class AuditRun:
     config: ProjectConfig
-    decision: FoundationDecision
+    decision: AuditDecision
     report_path: Path
     run_manifest_path: Path
 
@@ -108,8 +108,8 @@ def build_state_bank_stage(config_path: Path, registry_directory: Path | None = 
     return config.paths.state_bank_dir
 
 
-def run_foundation_audit(config_path: Path, *, device: str = "auto") -> AuditRun:
-    """Execute the foundation audit and return its guarded decision."""
+def run_audit(config_path: Path, *, device: str = "auto") -> AuditRun:
+    """Execute the audit and return its guarded decision."""
 
     config = load_config(config_path)
     _prepare_run_directory(config, config_path)
@@ -155,7 +155,7 @@ def run_foundation_audit(config_path: Path, *, device: str = "auto") -> AuditRun
     observability = audit_observability(cache, bank, registry, config, embeddings)
     on_policy = audit_on_policy(teacher_audit.position_metrics, bank, cache, config)
     distillability = build_distillability_map(teacher_audit, observability, bank, config)
-    decision_result = evaluate_foundation_decision(
+    decision_result = evaluate_decision(
         teacher_audit, observability, on_policy, distillability, config
     )
     audit_manifest = write_audit_bundle(
@@ -169,7 +169,7 @@ def run_foundation_audit(config_path: Path, *, device: str = "auto") -> AuditRun
     )
     del audit_manifest
     figure_paths = make_audit_figures(config)
-    report_path = write_foundation_report(
+    report_path = write_audit_report(
         decision_result,
         leakage,
         bank,
@@ -272,7 +272,7 @@ def _prepare_registry(config: ProjectConfig) -> tuple[RegistryTables, LeakageAud
         )
     else:
         if config.paths.audit_domain_input is None:
-            raise FileNotFoundError("real foundation audit requires paths.audit_domain_input")
+            raise FileNotFoundError("real audit requires paths.audit_domain_input")
         audit_registry = registry_from_canonical_input(config.paths.audit_domain_input)
         audit_manifest = config.paths.audit_domain_input / "manifest.json"
         if audit_manifest.exists():
@@ -325,7 +325,7 @@ def _load_candidate_registry(
             if path is not None
         )
     if config.paths.conservation_input is None:
-        raise FileNotFoundError("real foundation audit requires paths.conservation_input")
+        raise FileNotFoundError("real audit requires paths.conservation_input")
     candidates = attach_conservation(
         candidates,
         load_conservation(config.paths.conservation_input),
@@ -527,7 +527,7 @@ def _load_or_create_dms(
 
 def _read_required_table(path: Path | None, label: str) -> pd.DataFrame:
     if path is None or not path.exists():
-        raise FileNotFoundError(f"real foundation audit requires {label}: {path}")
+        raise FileNotFoundError(f"real audit requires {label}: {path}")
     if path.suffix.lower() == ".parquet":
         return pd.read_parquet(path)
     if path.suffix.lower() in {".csv", ".tsv"}:
@@ -536,7 +536,7 @@ def _read_required_table(path: Path | None, label: str) -> pd.DataFrame:
 
 
 def _write_run_manifest(
-    config: ProjectConfig, decision_result: FoundationDecision, artifacts: list[Path]
+    config: ProjectConfig, decision_result: AuditDecision, artifacts: list[Path]
 ) -> Path:
     path = config.paths.run_dir / "manifest.json"
     payload = {

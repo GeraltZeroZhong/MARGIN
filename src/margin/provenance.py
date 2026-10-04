@@ -88,7 +88,7 @@ def read_json(path: Path) -> Any:
 
 
 def write_parquet(path: Path, table: pd.DataFrame) -> None:
-    """Atomically write a typed table in the canonical foundation audit interchange format."""
+    """Atomically write a typed table in the canonical audit interchange format."""
 
     path.parent.mkdir(parents=True, exist_ok=True)
     file_descriptor, temporary_name = tempfile.mkstemp(

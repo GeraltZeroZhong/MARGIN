@@ -1,4 +1,4 @@
-"""Command-line entry points for audits, adapters, and workflow discovery."""
+"""Command-line entry points for reusable audits and model adapters."""
 
 from __future__ import annotations
 
@@ -14,30 +14,14 @@ from margin.pipeline import (
     build_candidates_stage,
     build_state_bank_stage,
     prepare_registry_stage,
-    run_foundation_audit,
+    run_audit,
 )
 from margin.teachers.external import run_external_teacher
-from margin.workflows import WORKFLOWS, get_workflow
 
 
 def main() -> None:
     parser = _parser()
     arguments = parser.parse_args()
-    if arguments.command == "list-workflows":
-        for workflow in WORKFLOWS:
-            print(f"{workflow.name:24} {workflow.purpose}")
-        return
-    if arguments.command == "describe-workflow":
-        try:
-            workflow = get_workflow(arguments.name)
-        except KeyError as error:
-            raise SystemExit(str(error)) from error
-        print(f"name={workflow.name}")
-        print(f"purpose={workflow.purpose}")
-        print(f"package={workflow.package}")
-        print(f"config={workflow.config}")
-        print(f"scripts={workflow.scripts}")
-        return
     if arguments.command == "validate-config":
         config = load_config(arguments.config)
         print(config.model_dump_json(indent=2))
@@ -50,7 +34,7 @@ def main() -> None:
             print(table.to_string(index=False))
         raise SystemExit(1 if (table["status"] == "FAIL").any() else 0)
     if arguments.command == "run":
-        result = run_foundation_audit(arguments.config, device=arguments.device)
+        result = run_audit(arguments.config, device=arguments.device)
         print(f"decision={result.decision.decision}")
         print(f"report={result.report_path}")
         print(f"manifest={result.run_manifest_path}")
@@ -115,12 +99,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     doctor.add_argument("--config", type=Path, required=True)
     doctor.add_argument("--json", action="store_true")
-    commands.add_parser("list-workflows", help="list workflows by scientific purpose")
-    describe = commands.add_parser(
-        "describe-workflow", help="show the package, config, and scripts for one workflow"
-    )
-    describe.add_argument("name")
-    run = commands.add_parser("run", help="execute the complete foundation audit")
+    run = commands.add_parser("run", help="execute the complete audit")
     run.add_argument("--config", type=Path, required=True)
     run.add_argument("--device", default="auto")
     candidates = commands.add_parser(

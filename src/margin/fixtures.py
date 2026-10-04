@@ -1,4 +1,4 @@
-"""Deterministic fixtures that exercise foundation audit without making scientific claims."""
+"""Deterministic fixtures that exercise audit without making scientific claims."""
 
 from __future__ import annotations
 

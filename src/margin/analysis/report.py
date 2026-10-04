@@ -1,4 +1,4 @@
-"""Generate a source-linked foundation decision report and run handoff documentation."""
+"""Generate a source-linked audit decision report and run documentation."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from margin.attribution.decision import FoundationDecision
+from margin.attribution.decision import AuditDecision
 from margin.attribution.observability import ObservabilityAudit
 from margin.attribution.on_policy import OnPolicyAudit
 from margin.attribution.teacher_value import TeacherValueAudit
@@ -20,8 +20,8 @@ from margin.state_sampling.bank import StateBank
 from margin.teachers.cache import TeacherScoreCache
 
 
-def write_foundation_report(
-    decision_result: FoundationDecision,
+def write_audit_report(
+    decision_result: AuditDecision,
     leakage: LeakageAudit,
     bank: StateBank,
     decoys: DecoyArtifacts,
@@ -98,7 +98,12 @@ def write_foundation_report(
         if incomplete_features.empty
         else "; ".join(incomplete_features["reason"].astype(str))
     )
-    report = f"""# MARGIN foundation decision report
+    figure_links = "\n".join(
+        f"- [`../figures/{stem}.{file_format}`](../figures/{stem}.{file_format})"
+        for stem in ("distillability_map", "audit_overview")
+        for file_format in config.plot.formats
+    )
+    report = f"""# MARGIN audit decision report
 
 Decision: **{decision_result.decision}**
 Data mode: `{config.data_mode}`
@@ -129,7 +134,7 @@ flowchart TD
 
 The synthetic guard is evaluated after this logic and forces `SYNTHETIC_ONLY` for fixture runs.
 
-## Five foundation audit questions
+## Five audit questions
 
 | Question | Evidence |
 |---|---|
@@ -139,13 +144,13 @@ The synthetic guard is evaluated after this logic and forces `SYNTHETIC_ONLY` fo
 | How far is the scaffold reliable? | Environment-specific maximum corruption level retaining positive action value. |
 | Is on-policy necessary? | Within-domain, corruption-matched comparisons against reference and model-aware offline states, with SMD balance diagnostics. |
 
-## Fixed criteria
+## Configured criteria
 
-| Criterion | Status | Estimate | 95% CI | Threshold |
+| Criterion | Status | Estimate | {config.audit.confidence_level:.0%} CI | Threshold |
 |---|---:|---:|---:|---:|
 {criteria_rows}
 
-Full machine-readable criteria are in [`../audit/decision_criteria.parquet`](../audit/decision_criteria.parquet), and the decision record is in [`../audit/foundation_decision.json`](../audit/foundation_decision.json).
+Full machine-readable criteria are in [`../audit/decision_criteria.parquet`](../audit/decision_criteria.parquet), and the decision record is in [`../audit/decision.json`](../audit/decision.json).
 
 ## Data and leakage
 
@@ -157,7 +162,7 @@ Full machine-readable criteria are in [`../audit/decision_criteria.parquet`](../
 - Recorded leakage relations: {leakage.summary["relations"]:,}
 - State bank: {len(bank.states):,} states and {len(bank.positions):,} state-position rows
 - Decoys: {len(decoys.decoys):,} declarations; {len(decoys.skipped):,} skipped matched controls
-- Gate analysis population: `{config.audit.decision_analysis_role}`
+- Decision analysis population: `{config.audit.decision_analysis_role}`
 
 The registry and leakage evidence are in [`../registry/manifest.json`](../registry/manifest.json) and [`../registry/leakage/leakage_manifest.json`](../registry/leakage/leakage_manifest.json).
 
@@ -175,25 +180,24 @@ All imported scores are normalized natural-log probabilities over the canonical 
 - DMS coverage table: [`../audit/dms_coverage.parquet`](../audit/dms_coverage.parquet)
 - Experimental evidence scope: `{decision_result.decision_record.get("experimental_evidence_scope", "unspecified")}`
 - Observability: {observability_note}
-- Matched on-policy pairs in the Gate population: {len(gate_matches):,}
-- Matching comparisons passing the predeclared quality rule: {int(gate_on_policy.get("matching_quality_pass", pd.Series(dtype=bool)).sum()):,}/{len(gate_on_policy):,}
+- Matched on-policy pairs in the decision population: {len(gate_matches):,}
+- Matching comparisons passing the configured quality rule: {int(gate_on_policy.get("matching_quality_pass", pd.Series(dtype=bool)).sum()):,}/{len(gate_on_policy):,}
 
 ## Figures and source data
 
-- [`../figures/figure_1_distillability_map.pdf`](../figures/figure_1_distillability_map.pdf)
-- [`../figures/figure_2_audit_overview.pdf`](../figures/figure_2_audit_overview.pdf)
-- [`../source_data/figure_1_distillability_map.csv`](../source_data/figure_1_distillability_map.csv)
-- [`../source_data/figure_2_paired_decoy.csv`](../source_data/figure_2_paired_decoy.csv)
-- [`../source_data/figure_3_observability.csv`](../source_data/figure_3_observability.csv)
-- [`../source_data/figure_4_on_policy.csv`](../source_data/figure_4_on_policy.csv)
+{figure_links}
+- [`../source_data/distillability_map.csv`](../source_data/distillability_map.csv)
+- [`../source_data/paired_decoy.csv`](../source_data/paired_decoy.csv)
+- [`../source_data/observability.csv`](../source_data/observability.csv)
+- [`../source_data/on_policy.csv`](../source_data/on_policy.csv)
 
 ## Interpretation boundary
 
-The Gate reports effect sizes and domain-cluster bootstrap intervals; positions from the same protein are not treated as independent replicates. A passing software fixture validates schemas, joins, controls, fitting isolation, and branch logic. Only a real-data run with frozen student embeddings, external benchmark labels, complete teacher coverage, and acceptable matching balance can support a biological decision.
+The audit reports effect sizes and domain-cluster bootstrap intervals; positions from the same protein are not treated as independent replicates. A passing software fixture validates schemas, joins, controls, fitting isolation, and branch logic. Only a real-data run with frozen student embeddings, external benchmark labels, complete teacher coverage, and acceptable matching balance can support a biological decision.
 
 The resolved configuration and run manifest record the executable workflow used for this run.
 """
-    path = config.paths.report_dir / "foundation_report.md"
+    path = config.paths.report_dir / "audit_report.md"
     write_text(path, report)
     return path
 
@@ -206,7 +210,7 @@ def write_run_index(config: ProjectConfig, artifacts: list[Path]) -> Path:
         for path in artifacts
         if path.exists() and path.is_file()
     )
-    payload = f"""# MARGIN foundation-audit run index
+    payload = f"""# MARGIN audit run index
 
 Data mode: `{config.data_mode}`
 Configuration schema: `{config.schema_version}`

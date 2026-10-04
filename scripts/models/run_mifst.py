@@ -7,10 +7,13 @@ import argparse
 import sys
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-import torch
+
+if TYPE_CHECKING:
+    import torch
 
 from margin.teachers.runner_cache import (
     completed_request_ids,
@@ -24,6 +27,8 @@ AA_ALPHABET = "ACDEFGHIKLMNPQRSTVWY"
 
 def main() -> None:
     arguments = parse_arguments()
+    import torch
+
     if arguments.repository:
         sys.path.insert(0, str(Path(arguments.repository).resolve()))
     from sequence_models.pdb_utils import process_coords
@@ -133,6 +138,8 @@ def leave_one_out_log_probabilities(
 ) -> np.ndarray:
     """Mask each queried position before reading its candidate distribution."""
 
+    import torch
+
     sequence = state_sequence.replace("X", "#")
     output = np.empty((len(sequence), len(AA_ALPHABET)), dtype=float)
     for start in range(0, len(sequence), batch_size):
@@ -240,6 +247,8 @@ def contact_reassignment_geometry(
 def load_mifst(arguments: argparse.Namespace):
     """Load pinned local MIF or MIF-ST weights, otherwise use the upstream downloader."""
 
+    import torch
+
     if arguments.weights is None and arguments.auxiliary_weights is None:
         from sequence_models.pretrained import load_model_and_alphabet
 
@@ -293,6 +302,8 @@ def score_rows(
 
 
 def choose_device(value: str) -> torch.device:
+    import torch
+
     if value == "auto":
         return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     return torch.device(value)

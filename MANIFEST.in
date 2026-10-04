@@ -1,0 +1,9 @@
+include README.md LICENSE pyproject.toml CONTRIBUTING.md
+recursive-include src/margin *.py
+recursive-include configs *.yaml
+recursive-include scripts/models *.py
+recursive-include tests *.py
+prune .internal
+prune build
+prune dist
+global-exclude __pycache__ *.py[cod]

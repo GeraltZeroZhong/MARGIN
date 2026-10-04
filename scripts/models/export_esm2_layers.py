@@ -5,11 +5,13 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-import torch
-from transformers import AutoTokenizer, EsmForMaskedLM
+
+if TYPE_CHECKING:
+    import torch
 
 from margin.config import load_config
 from margin.provenance import read_json, runtime_manifest, sha256_file, write_json, write_parquet
@@ -18,6 +20,9 @@ from margin.state_sampling.bank import load_state_bank
 
 def main() -> None:
     arguments = parse_arguments()
+    import torch
+    from transformers import AutoTokenizer, EsmForMaskedLM
+
     config = load_config(arguments.config)
     bank = load_state_bank(arguments.state_bank)
     output = arguments.output.resolve()

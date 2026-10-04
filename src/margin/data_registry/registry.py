@@ -1,4 +1,4 @@
-"""Build, validate, and persist the unified foundation audit data registry."""
+"""Build, validate, and persist the unified audit data registry."""
 
 from __future__ import annotations
 

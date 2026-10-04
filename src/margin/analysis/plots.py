@@ -1,4 +1,4 @@
-"""Generate publication-ready figures exclusively from persisted source-data tables."""
+"""Render audit figures from persisted source-data tables."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ def make_audit_figures(config: ProjectConfig) -> list[Path]:
     _set_style()
     output: list[Path] = []
     map_table = pd.read_parquet(
-        config.paths.source_data_dir / "figure_1_distillability_map.parquet"
+        config.paths.source_data_dir / "distillability_map.parquet"
     )
     map_table = _decision_scope(map_table, config)
     output.extend(_plot_distillability_map(map_table, config))
@@ -61,7 +61,7 @@ def _plot_distillability_map(table: pd.DataFrame, config: ProjectConfig) -> list
             ]
         ).copy()
         if clean.empty:
-            _empty_axis(axis, "Distillability map", "No rows contain all four gate dimensions")
+            _empty_axis(axis, "Distillability map", "No rows contain all four decision dimensions")
         else:
             sizes = _marker_sizes(clean["scaffold_reliability"], config)
             scatter = axis.scatter(
@@ -120,7 +120,7 @@ def _plot_distillability_map(table: pd.DataFrame, config: ProjectConfig) -> list
                     arrowprops={"arrowstyle": "-", "color": "0.35", "linewidth": 0.5},
                     bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.82, "pad": 1},
                 )
-            axis.set_title("foundation audit distillability map")
+            axis.set_title("Audit distillability map")
             axis.set_xlabel("Teacher action value (native-NLL reduction, nats)")
             axis.set_ylabel("Sequence observability (JSD reduction, nats)")
             axis.text(
@@ -133,13 +133,13 @@ def _plot_distillability_map(table: pd.DataFrame, config: ProjectConfig) -> list
                 fontsize=7,
                 color=OKABE_ITO["gray"],
             )
-    return _save(figure, config.paths.figure_dir / "figure_1_distillability_map", config)
+    return _save(figure, config.paths.figure_dir / "distillability_map", config)
 
 
 def _plot_audit_overview(config: ProjectConfig) -> list[Path]:
-    paired = pd.read_parquet(config.paths.source_data_dir / "figure_2_paired_decoy.parquet")
-    observable = pd.read_parquet(config.paths.source_data_dir / "figure_3_observability.parquet")
-    on_policy = pd.read_parquet(config.paths.source_data_dir / "figure_4_on_policy.parquet")
+    paired = pd.read_parquet(config.paths.source_data_dir / "paired_decoy.parquet")
+    observable = pd.read_parquet(config.paths.source_data_dir / "observability.parquet")
+    on_policy = pd.read_parquet(config.paths.source_data_dir / "on_policy.parquet")
     gate = pd.read_parquet(config.paths.source_data_dir / "decision_criteria.parquet")
     figure, axes = plt.subplots(
         2,
@@ -161,7 +161,7 @@ def _plot_audit_overview(config: ProjectConfig) -> list[Path]:
             fontsize=10,
             va="top",
         )
-    return _save(figure, config.paths.figure_dir / "figure_2_audit_overview", config)
+    return _save(figure, config.paths.figure_dir / "audit_overview", config)
 
 
 def _paired_panel(axis: plt.Axes, table: pd.DataFrame, config: ProjectConfig) -> None:
@@ -274,7 +274,7 @@ def _on_policy_panel(axis: plt.Axes, table: pd.DataFrame, config: ProjectConfig)
 
 def _gate_panel(axis: plt.Axes, table: pd.DataFrame) -> None:
     if table.empty:
-        _empty_axis(axis, "foundation decision", "No criteria")
+        _empty_axis(axis, "Audit decision", "No criteria")
         return
     status_order = {"PASS": 1.0, "INCOMPLETE": 0.0, "FAIL": -1.0}
     color = {
@@ -291,7 +291,7 @@ def _gate_panel(axis: plt.Axes, table: pd.DataFrame) -> None:
     axis.set_yticks(positions, shown["criterion"].str.replace("_", " "), fontsize=6)
     axis.set_xticks([-1, 0, 1], ["Fail", "Incomplete", "Pass"])
     axis.set_xlim(-1.25, 1.25)
-    axis.set_title("Fixed foundation decision criteria")
+    axis.set_title("Configured decision criteria")
     axis.grid(axis="y", visible=False)
 
 

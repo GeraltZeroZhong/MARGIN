@@ -1,4 +1,11 @@
-# Python build and test state
+# Local workspace state
+/.internal/
+/AGENTS.md
+/.agents/
+/.codex/
+/.aws/
+
+# Python build, test and environment state
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -8,10 +15,10 @@ __pycache__/
 htmlcov/
 build/
 dist/
-
-# Environments, editors, and operating-system files
 .venv/
 venv/
+
+# Local configuration and editor state
 .env
 .env.*
 !.env.example
@@ -21,34 +28,10 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Project artifacts
-/AGENTS.md
-/internal/
-/reports/
-/notes/
-/scratch/
-/protocols/
-/workflows/locks/
-
-/runs/
+# User-selected inputs, model resources and generated outputs
 /data/
-/teacher_cache/
-/publication/
-/manuscript/
-
-# Local manuscript and publication authoring
-/configs/publication_audit.yaml
-/scripts/publication/build_figures.py
-/scripts/publication/export_bundle.py
-/scripts/workflows/stability/audit_publication.py
-/src/margin/manuscript_figures.py
-/src/margin/publication.py
-/src/margin/studies/stability/publication_audit.py
-/src/margin/studies/stability/publication_figure.py
-/tests/test_publication.py
-/tests/test_publication_audit.py
-
-# External model resources
+/outputs/
+/runs/
 /external/
 /models/
 /tools/
@@ -57,10 +40,6 @@ Thumbs.db
 *.ckpt
 *.safetensors
 *.bin
-
-# Configuration overrides and array formats
-/configs/local*.yaml
-/configs/*local*.yaml
 *.parquet
 *.feather
 *.npy
@@ -68,7 +47,7 @@ Thumbs.db
 *.h5
 *.hdf5
 
-# Runtime logs and temporary files
+# Logs and temporary files
 *.log
 *.tmp
 *.swp

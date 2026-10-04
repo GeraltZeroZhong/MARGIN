@@ -136,13 +136,6 @@ def _score_row(
 ) -> dict[str, Any]:
     clipped = np.clip(scores, -config.teacher_cache.score_clip, config.teacher_cache.score_clip)
     normalized = clipped - logsumexp(clipped)
-    conditioning = {
-        "mifst": "leave_one_out_masked_bidirectional_structure_sequence",
-        "proteinmpnn": "full_sequence_backbone_conditional",
-        "esm_if1": "autoregressive_prefix_backbone_conditional",
-    }.get(teacher.teacher_id, "synthetic_structure_conditional")
-    if teacher.teacher_id == "mifst" and structure_role == "contact_rewired":
-        conditioning = "leave_one_out_masked_sequence_rewired_contact_graph"
     row: dict[str, Any] = {
         "state_id": position.state_id,
         "domain_id": position.domain_id,
@@ -152,7 +145,7 @@ def _score_row(
         "structure_role": structure_role,
         "structure_id": structure_id,
         "input_score_type": teacher.score_type,
-        "conditioning": conditioning,
+        "conditioning": "synthetic_structure_conditional",
         "model_name": teacher.model_name,
         "model_revision": teacher.model_revision,
         "device": "synthetic",
